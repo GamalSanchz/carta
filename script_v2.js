@@ -132,42 +132,54 @@ document.addEventListener("keydown", (e) => {
   if (el) el.setAttribute("tabindex", "0");
 });
 
-// ===== MODAL INSTRUCCIONES =====
-(function(){
-  const MODAL_KEY = "instruccionesV1-visto";
+// ===== MODAL INSTRUCCIONES (V2) =====
+(function () {
+  const MODAL_KEY = "instruccionesV2-visto"; // <-- clave nueva
   const backdrop = document.getElementById("modalInstrucciones");
-  if (!backdrop) return;
+  if (!backdrop) return; // si no está en el HTML, salimos
 
   const btnOk = document.getElementById("btnEntendido");
   const btnX  = document.getElementById("btnCerrarModal");
 
+  const qs = new URLSearchParams(location.search);
+  const forceByQuery = qs.get("modal") === "1" || location.hash === "#modal";
+
   function openModal() {
     document.body.classList.add("modal-open");
-    backdrop.setAttribute("data-open","true");
-    backdrop.setAttribute("aria-hidden","false");
+    backdrop.setAttribute("data-open", "true");
+    backdrop.setAttribute("aria-hidden", "false");
   }
   function closeModal() {
     document.body.classList.remove("modal-open");
-    backdrop.setAttribute("data-open","false");
-    backdrop.setAttribute("aria-hidden","true");
-    try { localStorage.setItem(MODAL_KEY, "1"); } catch(_) {}
+    backdrop.setAttribute("data-open", "false");
+    backdrop.setAttribute("aria-hidden", "true");
+    try { localStorage.setItem(MODAL_KEY, "1"); } catch (_) {}
   }
 
-  // Mostrar solo la primera vez
+  // ¿Ya lo vio?
   let visto = false;
-  try { visto = localStorage.getItem(MODAL_KEY) === "1"; } catch(_) {}
-  if (!visto) openModal();
+  try { visto = localStorage.getItem(MODAL_KEY) === "1"; } catch (_) {}
 
-  // Cerrar con botón, con X, con clic fuera y con ESC
+  // Mostrar si no lo vio o si se fuerza con la URL
+  if (!visto || forceByQuery) openModal();
+
+  // Cierres
   btnOk && btnOk.addEventListener("click", closeModal);
   btnX  && btnX.addEventListener("click", closeModal);
-
   backdrop.addEventListener("click", (e) => {
-    if (e.target === backdrop) closeModal();
+    if (e.target === backdrop) closeModal(); // clic fuera
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && backdrop.getAttribute("data-open")==="true") {
+    if (e.key === "Escape" && backdrop.getAttribute("data-open") === "true") {
       e.preventDefault(); closeModal();
+    }
+  });
+
+  // Atajo para pruebas: Ctrl+Shift+M limpia la marca y reabre
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.shiftKey && (e.key === "M" || e.key === "m")) {
+      try { localStorage.removeItem(MODAL_KEY); } catch(_) {}
+      openModal();
     }
   });
 })();
